@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function init() {
         // Ustawienie sceny
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0a0a1a);
+        scene.background = new THREE.Color(0x1a1a2a);
 
         // Kamera
         camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.getElementById('canvas-container').appendChild(renderer.domElement);
 
         // Kontroler kamery
@@ -109,21 +110,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Konfiguracja świateł
     function setupLights() {
         // Światło ambientowe
-        const ambientLight = new THREE.AmbientLight(0x333344, 0.5);
+        const ambientLight = new THREE.AmbientLight(0x404060, 0.8);
         scene.add(ambientLight);
 
         // Główne światło kierunkowe
-        const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
         mainLight.position.set(10, 20, 10);
         mainLight.castShadow = true;
         mainLight.shadow.mapSize.width = 2048;
         mainLight.shadow.mapSize.height = 2048;
+        mainLight.shadow.camera.near = 0.5;
+        mainLight.shadow.camera.far = 50;
+        mainLight.shadow.bias = -0.0001;
         scene.add(mainLight);
 
         // Światło punktowe
-        const pointLight = new THREE.PointLight(0x00ffff, 0.5, 20);
-        pointLight.position.set(0, 10, 0);
-        scene.add(pointLight);
+        const pointLight1 = new THREE.PointLight(0x00ffff, 0.6, 30);
+        pointLight1.position.set(0, 15, 0);
+        scene.add(pointLight1);
+
+        // Dodatkowe światło punktowe dla lepszego oświetlenia
+        const pointLight2 = new THREE.PointLight(0xffffff, 0.4, 20);
+        pointLight2.position.set(-10, 10, -10);
+        scene.add(pointLight2);
     }
 
     // Tworzenie planszy
@@ -157,9 +166,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function createCell(row, col, x, y, z) {
         const geometry = new THREE.BoxGeometry(CELL_SIZE, 0.1, CELL_SIZE);
         const material = new THREE.MeshPhongMaterial({ 
-            color: 0x444444,
+            color: 0x555566,
             transparent: true,
-            opacity: 0.7
+            opacity: 0.8,
+            shininess: 50
         });
         
         const cell = new THREE.Mesh(geometry, material);
