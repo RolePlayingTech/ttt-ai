@@ -247,24 +247,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!aiUnavailable) {
                 if (currentPlayer === PLAYERS.KRZYŻYK) {
                     const messages = [
-                        `Kurwa! Przegrałem z takim noobem! Gracz KRZYŻYK (ten debil) właśnie wygrał. ${getBoardStateForAI()}`,
-                        `Ja pierdolę, jak mogłem przegrać z kimś tak beznadziejnym! ${getBoardStateForAI()}`,
-                        `Chuj ci w dupę KRZYŻYK, miałeś szczęście! Następnym razem cię rozjebię! ${getBoardStateForAI()}`
+                        `Kurwa! Przegrałem z takim noobem! Gracz KRZYŻYK (ten debil) właśnie wygrał. Takiej porażki nie widziałem od czasu Dudy w debacie prezydenckiej! ${getBoardStateForAI()}`,
+                        `Ja pierdolę, jak mogłem przegrać z kimś tak beznadziejnym! Czuję się jak PiS po wyborach 15 października! ${getBoardStateForAI()}`,
+                        `Chuj ci w dupę KRZYŻYK, miałeś szczęście! Następnym razem cię rozjebię jak Koalicja 13 grudnia rozjebie te wszystkie ustawy! ${getBoardStateForAI()}`
                     ];
                     getAICommentary(messages[Math.floor(Math.random() * messages.length)]);
                 } else {
                     const messages = [
-                        `HAHA! Wygrałem! Ssij pałę KRZYŻYK! ${getBoardStateForAI()}`,
-                        `Co jest kurwa?! Nie umiesz grać KRZYŻYK? Wracaj do piaskownicy! ${getBoardStateForAI()}`,
-                        `EZ! Get rekt nobie! Nawet moja babcia gra lepiej! ${getBoardStateForAI()}`
+                        `HAHA! Wygrałem! Ssij pałę KRZYŻYK! To było łatwiejsze niż przekazanie TVP do Ministerstwa Kultury! ${getBoardStateForAI()}`,
+                        `Co jest kurwa?! Nie umiesz grać KRZYŻYK? Wracaj do piaskownicy! Twoja strategia jest słabsza niż koalicja Konfederacji z Kukizem! ${getBoardStateForAI()}`,
+                        `EZ! Get rekt nobie! Nawet moja babcia gra lepiej, a ona ma tyle lat co Korwin-Mikke doświadczenia w polityce! ${getBoardStateForAI()}`
                     ];
                     getAICommentary(messages[Math.floor(Math.random() * messages.length)]);
                 }
             } else {
                 const messages = [
-                    `${currentPlayer} wygrywa! Co za zajebista gra!`,
-                    `${currentPlayer} rozpierdolił przeciwnika!`,
-                    `${currentPlayer} pokazał kto tu rządzi!`
+                    `${currentPlayer} wygrywa! Co za zajebista gra! Lepsza niż wyniki sondaży Tuska!`,
+                    `${currentPlayer} rozpierdolił przeciwnika jak Trzaskowski rozpierdolił Warszawę!`,
+                    `${currentPlayer} pokazał kto tu rządzi! Zajebista dominacja, jak Kaczyński nad posłami PiS!`
                 ];
                 document.getElementById('ai-message').textContent = messages[Math.floor(Math.random() * messages.length)];
             }
@@ -275,13 +275,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Pobierz komentarz AI jeśli jest dostępne
             if (!aiUnavailable) {
                 const messages = [
-                    `Kurwa, remis! Obaj jesteście do dupy! ${getBoardStateForAI()}`,
-                    `No ja pierdolę, co za chujowa gra! Nikt nie wygrał! ${getBoardStateForAI()}`,
-                    `Gratulacje, obaj ssiesz równie mocno! ${getBoardStateForAI()}`
+                    `Kurwa, remis! Obaj jesteście do dupy! To jak debata w Sejmie - dużo hałasu i zero wyników! ${getBoardStateForAI()}`,
+                    `No ja pierdolę, co za chujowa gra! Nikt nie wygrał! Jak rozmowy koalicyjne po wyborach parlamentarnych! ${getBoardStateForAI()}`,
+                    `Gratulacje, obaj ssiesz równie mocno! Tak beznadziejny wynik to jak plan Polskiego Ładu - nikt na tym nie wygrywa! ${getBoardStateForAI()}`
                 ];
                 getAICommentary(messages[Math.floor(Math.random() * messages.length)]);
             } else {
-                document.getElementById('ai-message').textContent = "Remis! Obaj jesteście równie beznadziejni!";
+                document.getElementById('ai-message').textContent = "Remis! Obaj jesteście równie beznadziejni jak poczynania Sejmu w kwestii aborcji!";
             }
         } else {
             // Zmiana gracza
@@ -298,9 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (currentPlayer === PLAYERS.KÓŁKO) {
                         // Kolej AI (KÓŁKO)
                         const messages = [
-                            `Ten debil KRZYŻYK wykonał ruch na [${row},${col}]. Teraz pokażę mu jak się gra! ${getBoardStateForAI()}`,
-                            `Co za chujowy ruch na [${row},${col}]! Zaraz go zajebię! ${getBoardStateForAI()}`,
-                            `HAHA! Co za noob! Postawił na [${row},${col}]! Teraz go wyrucha! ${getBoardStateForAI()}`
+                            `Ten debil KRZYŻYK wykonał ruch na [${row},${col}]. Teraz pokażę mu jak się gra! Taki nieudolny jak Duda czytający przemówienie bez promptera! ${getBoardStateForAI()}`,
+                            `Co za chujowy ruch na [${row},${col}]! Zaraz go zajebię! Nawet Sikorski nie popełnia takich błędów dyplomatycznych! ${getBoardStateForAI()}`,
+                            `HAHA! Co za noob! Postawił na [${row},${col}]! Teraz go wyrucha jak PiS wyrucha budżet państwa! ${getBoardStateForAI()}`
                         ];
                         aiPrompt = messages[Math.floor(Math.random() * messages.length)];
                     }
@@ -628,6 +628,18 @@ document.addEventListener('DOMContentLoaded', () => {
             state += "\n";
         }
         
+        // Analiza krytycznych zagrożeń
+        const criticalThreat = findCriticalThreats(PLAYERS.KRZYŻYK);
+        if (criticalThreat) {
+            state += "\nKRYTYCZNE ZAGROŻENIE: ";
+            
+            if (criticalThreat.criticalType === "sequence") {
+                state += `Przeciwnik ma ${criticalThreat.count} krzyżyków w rzędzie! Musisz zablokować ruch na (${criticalThreat.row},${criticalThreat.col}).`;
+            } else if (criticalThreat.criticalType === "gap_pattern") {
+                state += `Przeciwnik tworzy niebezpieczny wzorzec ${criticalThreat.pattern}! Musisz zablokować ruch na (${criticalThreat.row},${criticalThreat.col}).`;
+            }
+        }
+        
         // Dodanie informacji o dostępnych ruchach
         state += "\nDostępne ruchy (wiersz,kolumna):\n";
         let availableMoves = [];
@@ -727,10 +739,66 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                // Sprawdź, czy trzeba zablokować wygraną przeciwnika
+                // Sprawdź, czy trzeba zablokować wygraną przeciwnika lub krytyczne zagrożenie
                 const blockingMove = findWinningMove(PLAYERS.KRZYŻYK);
                 if (blockingMove) {
+                    console.log("Blokuję wygrywający ruch przeciwnika!", blockingMove);
+                    // Dodaj informację o zablokowaniu do komentarza AI z nawiązaniem do polskich polityków
+                    const blockingMessages = [
+                        "Ha! Próbujesz mnie wykiwać? Blokuję twój wygrywający ruch! Jesteś tak przewidywalny jak przemówienia Kaczyńskiego!",
+                        "Blokuję cię szybciej niż Tusk blokuje reformy! Niezły próba, frajerze!",
+                        "Myślisz, że nie widzę tego ruchu? Nawet Morawiecki by zauważył ten tani trik!",
+                        "Twój ruch był subtelny jak ochrona Jarosława! Blokuję cię, kretynie!"
+                    ];
+                    document.getElementById('ai-message').textContent = blockingMessages[Math.floor(Math.random() * blockingMessages.length)];
                     makeMove(blockingMove.row, blockingMove.col);
+                    return;
+                }
+                
+                // Sprawdź, czy są potencjalne zagrożenia (linie z 3 znakami przeciwnika)
+                const threatMove = findThreatsToBlock(PLAYERS.KRZYŻYK, 3);
+                if (threatMove) {
+                    console.log("Blokuję zagrożenie 3+ znaków w rzędzie!", threatMove);
+                    // Dodaj informację o zablokowaniu z odniesieniami do polskich polityków
+                    const politicalMessages = [
+                        "Twoja strategia jest tak dziurawa jak program wyborczy PiS-u! Blokuję!",
+                        "Próbujesz mnie ograć? Masz tyle szans co Hołownia na zostanie premierem!",
+                        "Widzę twoje zamiary jak Bodnar widzi nieprawidłowości w prokuraturze! Blokuję!",
+                        "Blokuję cię tak skutecznie jak Mentzen blokuje postęp w tym kraju!"
+                    ];
+                    
+                    let blockMessage;
+                    if (threatMove.criticalType === "sequence") {
+                        blockMessage = `O kurwa! Prawie mnie miałeś z ${threatMove.count} krzyżykami w rzędzie. Taki cwany jak Czarnek w ministerstwie - ale ja nie dam się tak łatwo!`;
+                    } else if (threatMove.criticalType === "gap_pattern") {
+                        blockMessage = `Myślisz, że nie widzę tego twojego podstępnego wzorca ${threatMove.pattern}? Masz mnie za takiego głupka jak Sasin, który nie umie policzyć do 70 milionów?`;
+                    } else {
+                        blockMessage = politicalMessages[Math.floor(Math.random() * politicalMessages.length)];
+                    }
+                    
+                    document.getElementById('ai-message').textContent = blockMessage;
+                    makeMove(threatMove.row, threatMove.col);
+                    return;
+                }
+                
+                // Sprawdź, czy można stworzyć linię 4 własnych znaków
+                const fourInARowMove = findPotentialLines(PLAYERS.KÓŁKO, 4);
+                if (fourInARowMove) {
+                    makeMove(fourInARowMove.row, fourInARowMove.col);
+                    return;
+                }
+                
+                // Sprawdź zagrożenia liniami z 2 znakami przeciwnika z otwartymi końcami
+                const earlyThreatMove = findThreatsToBlock(PLAYERS.KRZYŻYK, 2, true);
+                if (earlyThreatMove) {
+                    makeMove(earlyThreatMove.row, earlyThreatMove.col);
+                    return;
+                }
+                
+                // Sprawdź, czy można stworzyć linię 3 własnych znaków
+                const threeInARowMove = findPotentialLines(PLAYERS.KÓŁKO, 3);
+                if (threeInARowMove) {
+                    makeMove(threeInARowMove.row, threeInARowMove.col);
                     return;
                 }
                 
@@ -740,18 +808,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 
-                // W przeciwnym razie wybierz losowe wolne pole
+                // Spróbuj zagrać blisko swoich istniejących znaków
+                const adjacentMove = findAdjacentToOwn(PLAYERS.KÓŁKO);
+                if (adjacentMove) {
+                    makeMove(adjacentMove.row, adjacentMove.col);
+                    return;
+                }
+                
+                // W przeciwnym razie wybierz losowe wolne pole, preferując centrum
                 const availableMoves = [];
+                const centerMoves = [];
+                const centerRange = Math.floor(BOARD_SIZE * 0.3);
+                const centerStart = Math.floor(BOARD_SIZE/2) - centerRange;
+                const centerEnd = Math.floor(BOARD_SIZE/2) + centerRange;
+                
                 for (let i = 0; i < BOARD_SIZE; i++) {
                     for (let j = 0; j < BOARD_SIZE; j++) {
                         if (board[i][j] === PLAYERS.NONE) {
-                            availableMoves.push({row: i, col: j});
+                            const move = {row: i, col: j};
+                            availableMoves.push(move);
+                            
+                            // Sprawdź, czy ruch jest w centrum planszy
+                            if (i >= centerStart && i <= centerEnd && 
+                                j >= centerStart && j <= centerEnd) {
+                                centerMoves.push(move);
+                            }
                         }
                     }
                 }
                 
-                if (availableMoves.length > 0) {
-                    const randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+                // Wybierz losowy ruch z centrum, jeśli dostępny, w przeciwnym razie dowolny
+                const movesToUse = centerMoves.length > 0 ? centerMoves : availableMoves;
+                if (movesToUse.length > 0) {
+                    const randomMove = movesToUse[Math.floor(Math.random() * movesToUse.length)];
                     makeMove(randomMove.row, randomMove.col);
                 }
             } catch (error) {
@@ -765,14 +854,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Funkcja znajdująca ruch wygrywający dla danego gracza
     function findWinningMove(player) {
-        // Sprawdzanie wierszy i kolumn
+        // Sprawdzanie każdego wolnego pola
         for (let i = 0; i < BOARD_SIZE; i++) {
             for (let j = 0; j < BOARD_SIZE; j++) {
                 if (board[i][j] === PLAYERS.NONE) {
                     // Tymczasowo ustaw pole
                     board[i][j] = player;
                     // Sprawdź, czy to ruch wygrywający
-                    const isWinning = checkWinner() === player;
+                    const isWinning = checkWinner();
                     // Cofnij zmianę
                     board[i][j] = PLAYERS.NONE;
                     
@@ -781,6 +870,324 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
+        }
+        
+        return null;
+    }
+    
+    // Znajdź zagrożenia do zablokowania (linie z określoną liczbą znaków przeciwnika)
+    function findThreatsToBlock(player, threatCount, checkOpenEnds = false) {
+        const directions = [
+            {dr: 0, dc: 1},  // poziomo
+            {dr: 1, dc: 0},  // pionowo
+            {dr: 1, dc: 1},  // ukośnie (/)
+            {dr: 1, dc: -1}  // ukośnie (\)
+        ];
+        
+        // Najpierw sprawdź krytyczne zagrożenia (priorytety)
+        const criticalThreat = findCriticalThreats(player);
+        if (criticalThreat) return criticalThreat;
+        
+        // Sprawdź każde wolne pole
+        for (let row = 0; row < BOARD_SIZE; row++) {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                if (board[row][col] !== PLAYERS.NONE) continue;
+                
+                // Sprawdź każdy kierunek
+                for (const dir of directions) {
+                    let count = 0;
+                    let openEnds = 0;
+                    
+                    // Sprawdź w jedną stronę
+                    for (let i = 1; i <= 4; i++) {
+                        const r = row + dir.dr * i;
+                        const c = col + dir.dc * i;
+                        if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                            if (board[r][c] === player) {
+                                count++;
+                            } else if (board[r][c] === PLAYERS.NONE) {
+                                openEnds++;
+                                break;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Sprawdź w drugą stronę
+                    for (let i = 1; i <= 4; i++) {
+                        const r = row - dir.dr * i;
+                        const c = col - dir.dc * i;
+                        if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                            if (board[r][c] === player) {
+                                count++;
+                            } else if (board[r][c] === PLAYERS.NONE) {
+                                openEnds++;
+                                break;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Sprawdź, czy znaleziono zagrożenie
+                    if (count >= threatCount) { // Zmiana: >= zamiast ===, aby wykryć również dłuższe sekwencje
+                        // Jeśli wymagane są otwarte końce, sprawdź ich liczbę
+                        if (!checkOpenEnds || openEnds > 0) {
+                            return {row, col};
+                        }
+                    }
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    // Funkcja znajdująca krytyczne zagrożenia (nowa)
+    function findCriticalThreats(player) {
+        const directions = [
+            {dr: 0, dc: 1},  // poziomo
+            {dr: 1, dc: 0},  // pionowo
+            {dr: 1, dc: 1},  // ukośnie (/)
+            {dr: 1, dc: -1}  // ukośnie (\)
+        ];
+        
+        // 1. Znajdź wzorzec X X X (3 lub więcej w rzędzie)
+        for (let row = 0; row < BOARD_SIZE; row++) {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                if (board[row][col] !== player) continue;
+                
+                for (const dir of directions) {
+                    let count = 1; // Zaczynamy od 1 dla aktualnej pozycji
+                    
+                    // Sprawdź ile jest symboli w rzędzie w tym kierunku
+                    for (let i = 1; i < 5; i++) {
+                        const r = row + dir.dr * i;
+                        const c = col + dir.dc * i;
+                        
+                        if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                            if (board[r][c] === player) {
+                                count++;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Jeśli mamy 3 lub więcej, sprawdź czy możemy zablokować na końcu
+                    if (count >= 3) {
+                        // Sprawdź miejsce po sekwencji
+                        const blockRow = row + dir.dr * count;
+                        const blockCol = col + dir.dc * count;
+                        
+                        if (blockRow >= 0 && blockRow < BOARD_SIZE && 
+                            blockCol >= 0 && blockCol < BOARD_SIZE && 
+                            board[blockRow][blockCol] === PLAYERS.NONE) {
+                            console.log(`Znaleziono krytyczne zagrożenie: ${count} symboli w rzędzie w kierunku (${dir.dr},${dir.dc}) od (${row},${col})`);
+                            return {row: blockRow, col: blockCol, criticalType: "sequence", count: count};
+                        }
+                        
+                        // Sprawdź miejsce przed sekwencją
+                        const blockRowBefore = row - dir.dr;
+                        const blockColBefore = col - dir.dc;
+                        
+                        if (blockRowBefore >= 0 && blockRowBefore < BOARD_SIZE && 
+                            blockColBefore >= 0 && blockColBefore < BOARD_SIZE && 
+                            board[blockRowBefore][blockColBefore] === PLAYERS.NONE) {
+                            console.log(`Znaleziono krytyczne zagrożenie: ${count} symboli w rzędzie w kierunku (${dir.dr},${dir.dc}) od (${row},${col})`);
+                            return {row: blockRowBefore, col: blockColBefore, criticalType: "sequence", count: count};
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 2. Znajdź wzorzec X_XX lub XX_X (jeden symbol, przerwa, dwa symbole lub odwrotnie)
+        for (let row = 0; row < BOARD_SIZE; row++) {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                if (board[row][col] !== PLAYERS.NONE) continue;
+                
+                for (const dir of directions) {
+                    // Sprawdź wzorzec X_XX (gdzie _ to aktualna pozycja)
+                    let isPattern1 = true;
+                    
+                    // Sprawdź X przed przerwą
+                    const prevRow = row - dir.dr;
+                    const prevCol = col - dir.dc;
+                    if (!(prevRow >= 0 && prevRow < BOARD_SIZE && prevCol >= 0 && prevCol < BOARD_SIZE && 
+                          board[prevRow][prevCol] === player)) {
+                        isPattern1 = false;
+                    }
+                    
+                    // Sprawdź XX po przerwie
+                    const next1Row = row + dir.dr;
+                    const next1Col = col + dir.dc;
+                    const next2Row = row + dir.dr * 2;
+                    const next2Col = col + dir.dc * 2;
+                    
+                    if (!(next1Row >= 0 && next1Row < BOARD_SIZE && next1Col >= 0 && next1Col < BOARD_SIZE && 
+                          board[next1Row][next1Col] === player &&
+                          next2Row >= 0 && next2Row < BOARD_SIZE && next2Col >= 0 && next2Col < BOARD_SIZE && 
+                          board[next2Row][next2Col] === player)) {
+                        isPattern1 = false;
+                    }
+                    
+                    if (isPattern1) {
+                        console.log(`Znaleziono wzorzec X_XX na (${row},${col})`);
+                        return {row, col, criticalType: "gap_pattern", pattern: "X_XX"};
+                    }
+                    
+                    // Sprawdź wzorzec XX_X (gdzie _ to aktualna pozycja)
+                    let isPattern2 = true;
+                    
+                    // Sprawdź XX przed przerwą
+                    const prev2Row = row - dir.dr * 2;
+                    const prev2Col = col - dir.dc * 2;
+                    
+                    if (!(prevRow >= 0 && prevRow < BOARD_SIZE && prevCol >= 0 && prevCol < BOARD_SIZE && 
+                          board[prevRow][prevCol] === player &&
+                          prev2Row >= 0 && prev2Row < BOARD_SIZE && prev2Col >= 0 && prev2Col < BOARD_SIZE && 
+                          board[prev2Row][prev2Col] === player)) {
+                        isPattern2 = false;
+                    }
+                    
+                    // Sprawdź X po przerwie
+                    if (!(next1Row >= 0 && next1Row < BOARD_SIZE && next1Col >= 0 && next1Col < BOARD_SIZE && 
+                          board[next1Row][next1Col] === player)) {
+                        isPattern2 = false;
+                    }
+                    
+                    if (isPattern2) {
+                        console.log(`Znaleziono wzorzec XX_X na (${row},${col})`);
+                        return {row, col, criticalType: "gap_pattern", pattern: "XX_X"};
+                    }
+                }
+            }
+        }
+        
+        return null;
+    }
+    
+    // Znajdź potencjalne linie dla własnych znaków
+    function findPotentialLines(player, lineLength) {
+        const directions = [
+            {dr: 0, dc: 1},  // poziomo
+            {dr: 1, dc: 0},  // pionowo
+            {dr: 1, dc: 1},  // ukośnie (/)
+            {dr: 1, dc: -1}  // ukośnie (\)
+        ];
+        
+        const candidates = [];
+        
+        // Sprawdź każde wolne pole
+        for (let row = 0; row < BOARD_SIZE; row++) {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                if (board[row][col] !== PLAYERS.NONE) continue;
+                
+                let bestCount = 0;
+                // Sprawdź każdy kierunek
+                for (const dir of directions) {
+                    let count = 0;
+                    let blocked = false;
+                    
+                    // Sprawdź w jedną stronę
+                    for (let i = 1; i < lineLength; i++) {
+                        const r = row + dir.dr * i;
+                        const c = col + dir.dc * i;
+                        if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                            if (board[r][c] === player) {
+                                count++;
+                            } else if (board[r][c] !== PLAYERS.NONE) {
+                                blocked = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (blocked) continue;
+                    
+                    // Sprawdź w drugą stronę
+                    blocked = false;
+                    for (let i = 1; i < lineLength; i++) {
+                        const r = row - dir.dr * i;
+                        const c = col - dir.dc * i;
+                        if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                            if (board[r][c] === player) {
+                                count++;
+                            } else if (board[r][c] !== PLAYERS.NONE) {
+                                blocked = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (!blocked && count > bestCount) {
+                        bestCount = count;
+                    }
+                }
+                
+                if (bestCount > 0) {
+                    candidates.push({
+                        row, 
+                        col, 
+                        score: bestCount
+                    });
+                }
+            }
+        }
+        
+        // Wybierz ruch z najwyższym wynikiem
+        if (candidates.length > 0) {
+            candidates.sort((a, b) => b.score - a.score);
+            return candidates[0];
+        }
+        
+        return null;
+    }
+    
+    // Znajdź ruch przylegający do własnych znaków
+    function findAdjacentToOwn(player) {
+        const candidates = [];
+        
+        // Sprawdź każde wolne pole
+        for (let row = 0; row < BOARD_SIZE; row++) {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                if (board[row][col] !== PLAYERS.NONE) continue;
+                
+                let adjacentCount = 0;
+                
+                // Sprawdź 8 otaczających pól
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        if (dr === 0 && dc === 0) continue;
+                        
+                        const r = row + dr;
+                        const c = col + dc;
+                        if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE) {
+                            if (board[r][c] === player) {
+                                adjacentCount++;
+                            }
+                        }
+                    }
+                }
+                
+                if (adjacentCount > 0) {
+                    candidates.push({
+                        row, 
+                        col, 
+                        score: adjacentCount
+                    });
+                }
+            }
+        }
+        
+        // Wybierz losowy ruch z tych, które mają najwyższą liczbę sąsiadów
+        if (candidates.length > 0) {
+            candidates.sort((a, b) => b.score - a.score);
+            const topScore = candidates[0].score;
+            const topCandidates = candidates.filter(c => c.score === topScore);
+            return topCandidates[Math.floor(Math.random() * topCandidates.length)];
         }
         
         return null;
