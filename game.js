@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let playerMarkers = [];
     let aiUnavailable = false; // Flaga wskazująca, czy AI jest niedostępne
     let computerMoveInProgress = false; // Flaga blokująca interakcję podczas ruchu komputera
+    let aiErrorCount = 0; // Licznik błędów AI
+    let aiCommentaryEnabled = true; // Flaga wskazująca, czy AI jest włączone
 
     // Funkcja do ukrywania ekranu ładowania
     function hideLoadingScreen() {
@@ -48,6 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         init();
         animate();
+        
+        // Przywróć stan zwinięcia komentarza AI
+        restoreAICommentaryState();
     } catch (error) {
         console.error('Błąd podczas inicjalizacji gry:', error);
         hideLoadingScreen(); // Ukryj ekran ładowania nawet w przypadku błędu
@@ -184,10 +189,20 @@ document.addEventListener('DOMContentLoaded', () => {
     function setupEventListeners() {
         // Obsługa kliknięć na planszy
         window.addEventListener('click', onCellClick);
+        
+        // Obsługa dotyku dla urządzeń mobilnych
+        window.addEventListener('touchstart', onTouchStart);
+        
         window.addEventListener('resize', onWindowResize);
         
         // Obsługa przycisków UI
         document.getElementById('reset-button').addEventListener('click', resetGame);
+        
+        // Obsługa przycisku zwijania/rozwijania komentarza AI
+        const collapseButton = document.getElementById('collapse-button');
+        if (collapseButton) {
+            collapseButton.addEventListener('click', toggleAICommentary);
+        }
     }
 
     // Obsługa kliknięcia na komórkę
@@ -211,6 +226,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Obsługa dotknięcia ekranu
+    function onTouchStart(event) {
+        // Blokuj kliknięcia, gdy gra nie jest aktywna, trwa ruch komputera lub jest kolej gracza KÓŁKO
+        if (!gameActive || computerMoveInProgress || currentPlayer === PLAYERS.KÓŁKO) return;
+        
+        // Zapobiegaj domyślnej akcji
+        event.preventDefault();
+        
+        if (event.touches.length > 0) {
+            const touch = event.touches[0];
+            const clientX = touch.clientX;
+            const clientY = touch.clientY;
+            
+            mouse.x = (clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(cellMeshes);
+            
+            if (intersects.length > 0) {
+                const cell = intersects[0].object;
+                const { row, col } = cell.userData;
+                
+                if (board[row][col] === PLAYERS.NONE) {
+                    makeMove(row, col);
+                }
+            }
+        }
+    }
+
     // Obsługa zmiany rozmiaru okna
     function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
@@ -220,6 +265,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Wykonanie ruchu
     function makeMove(row, col) {
+        if (!isValidMove(row, col)) {
+            console.error(`Nieprawidłowy ruch: [${row},${col}]`);
+            // Ukryj spinner ładowania
+            document.getElementById('loading-indicator').style.display = 'none';
+            computerMoveInProgress = false;
+            return;
+        }
+        
         // Aktualizacja stanu planszy
         board[row][col] = currentPlayer;
         
@@ -238,8 +291,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sprawdzenie stanu gry
         const gameState = checkGameState();
         
+        // Zawsze ukryj spinner ładowania po wykonaniu ruchu
+        document.getElementById('loading-indicator').style.display = 'none';
+        
         if (gameState === 'win') {
             gameActive = false;
+            computerMoveInProgress = false;
             highlightWinningCells();
             document.getElementById('current-player').textContent = currentPlayer;
             
@@ -247,41 +304,40 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!aiUnavailable) {
                 if (currentPlayer === PLAYERS.KRZYŻYK) {
                     const messages = [
-                        `Kurwa! Przegrałem z takim noobem! Gracz KRZYŻYK (ten debil) właśnie wygrał. Takiej porażki nie widziałem od czasu Dudy w debacie prezydenckiej! ${getBoardStateForAI()}`,
-                        `Ja pierdolę, jak mogłem przegrać z kimś tak beznadziejnym! Czuję się jak PiS po wyborach 15 października! ${getBoardStateForAI()}`,
-                        `Chuj ci w dupę KRZYŻYK, miałeś szczęście! Następnym razem cię rozjebię jak Koalicja 13 grudnia rozjebie te wszystkie ustawy! ${getBoardStateForAI()}`
+                        `Kurwa! Przegrałem z takim noobem! Gracz KRZYŻYK (ten debil) właśnie wygrał. ${getBoardStateForAI()}`,
+                        `Ja pierdolę, jak mogłem przegrać z kimś tak beznadziejnym! ${getBoardStateForAI()}`,
+                        `Chuj ci w dupę KRZYŻYK, miałeś szczęście! Następnym razem cię rozjebię! ${getBoardStateForAI()}`
                     ];
                     getAICommentary(messages[Math.floor(Math.random() * messages.length)]);
                 } else {
                     const messages = [
-                        `HAHA! Wygrałem! Ssij pałę KRZYŻYK! To było łatwiejsze niż przekazanie TVP do Ministerstwa Kultury! ${getBoardStateForAI()}`,
-                        `Co jest kurwa?! Nie umiesz grać KRZYŻYK? Wracaj do piaskownicy! Twoja strategia jest słabsza niż koalicja Konfederacji z Kukizem! ${getBoardStateForAI()}`,
-                        `EZ! Get rekt nobie! Nawet moja babcia gra lepiej, a ona ma tyle lat co Korwin-Mikke doświadczenia w polityce! ${getBoardStateForAI()}`
+                        `HAHA! Wygrałem! Ssij pałę KRZYŻYK! ${getBoardStateForAI()}`,
+                        `Co jest kurwa?! Nie umiesz grać KRZYŻYK? Wracaj do piaskownicy! ${getBoardStateForAI()}`,
+                        `EZ! Get rekt nobie! Nawet moja babcia gra lepiej! ${getBoardStateForAI()}`
                     ];
                     getAICommentary(messages[Math.floor(Math.random() * messages.length)]);
                 }
             } else {
                 const messages = [
-                    `${currentPlayer} wygrywa! Co za zajebista gra! Lepsza niż wyniki sondaży Tuska!`,
-                    `${currentPlayer} rozpierdolił przeciwnika jak Trzaskowski rozpierdolił Warszawę!`,
-                    `${currentPlayer} pokazał kto tu rządzi! Zajebista dominacja, jak Kaczyński nad posłami PiS!`
+                    `${currentPlayer} wygrywa! Co za zajebista gra!`,
+                    `${currentPlayer} rozpierdolił przeciwnika!`,
+                    `${currentPlayer} pokazał kto tu rządzi!`
                 ];
                 document.getElementById('ai-message').textContent = messages[Math.floor(Math.random() * messages.length)];
             }
         } else if (gameState === 'draw') {
             gameActive = false;
+            computerMoveInProgress = false;
             document.getElementById('current-player').textContent = "Remis";
             
             // Pobierz komentarz AI jeśli jest dostępne
             if (!aiUnavailable) {
                 const messages = [
-                    `Kurwa, remis! Obaj jesteście do dupy! To jak debata w Sejmie - dużo hałasu i zero wyników! ${getBoardStateForAI()}`,
-                    `No ja pierdolę, co za chujowa gra! Nikt nie wygrał! Jak rozmowy koalicyjne po wyborach parlamentarnych! ${getBoardStateForAI()}`,
-                    `Gratulacje, obaj ssiesz równie mocno! Tak beznadziejny wynik to jak plan Polskiego Ładu - nikt na tym nie wygrywa! ${getBoardStateForAI()}`
+                    `Remis! Ciekawie toczy się ta gra! ${getBoardStateForAI()}`
                 ];
                 getAICommentary(messages[Math.floor(Math.random() * messages.length)]);
             } else {
-                document.getElementById('ai-message').textContent = "Remis! Obaj jesteście równie beznadziejni jak poczynania Sejmu w kwestii aborcji!";
+                document.getElementById('ai-message').textContent = "Remis! Dobra gra, obaj jesteście ciekawymi przeciwnikami!";
             }
         } else {
             // Zmiana gracza
@@ -291,26 +347,35 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!aiUnavailable) {
                 // Jeśli jest kolej komputera (KÓŁKO), AI wykona ruch
                 if (currentPlayer === PLAYERS.KÓŁKO) {
-                    document.getElementById('ai-message').textContent = "Czekaj kurwa, myślę...";
+                    // Rozpocznij oczekiwanie na ruch komputera
+                    waitForComputerMove();
                     
                     // Przygotuj prompt dla AI
                     let aiPrompt = "";
                     if (currentPlayer === PLAYERS.KÓŁKO) {
                         // Kolej AI (KÓŁKO)
                         const messages = [
-                            `Ten debil KRZYŻYK wykonał ruch na [${row},${col}]. Teraz pokażę mu jak się gra! Taki nieudolny jak Duda czytający przemówienie bez promptera! ${getBoardStateForAI()}`,
-                            `Co za chujowy ruch na [${row},${col}]! Zaraz go zajebię! Nawet Sikorski nie popełnia takich błędów dyplomatycznych! ${getBoardStateForAI()}`,
-                            `HAHA! Co za noob! Postawił na [${row},${col}]! Teraz go wyrucha jak PiS wyrucha budżet państwa! ${getBoardStateForAI()}`
+                            `Ten debil KRZYŻYK wykonał ruch na [${row},${col}]. Teraz pokażę mu jak się gra! ${getBoardStateForAI()}`,
+                            `Co za chujowy ruch na [${row},${col}]! Zaraz go zajebię! ${getBoardStateForAI()}`,
+                            `HAHA! Co za noob! Postawił na [${row},${col}]! Teraz go wyrucha! ${getBoardStateForAI()}`
                         ];
                         aiPrompt = messages[Math.floor(Math.random() * messages.length)];
                     }
                     
                     getAICommentary(aiPrompt);
+                } else {
+                    // Jeśli to jest ruch gracza, resetujemy flagę
+                    computerMoveInProgress = false;
                 }
             } else {
                 // Ruch komputera gdy AI jest niedostępne i jest kolej KÓŁKO
                 if (currentPlayer === PLAYERS.KÓŁKO) {
-                    simpleComputerMove();
+                    waitForComputerMove();
+                    // Tutaj już nie wywołujemy simpleComputerMove bezpośrednio
+                    // Będzie on wywołany w getAICommentary po wykryciu, że AI jest niedostępne
+                } else {
+                    // Jeśli to jest ruch gracza, resetujemy flagę
+                    computerMoveInProgress = false;
                 }
             }
             
@@ -551,6 +616,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Resetowanie gry
     function resetGame() {
+        // Ukryj spinner ładowania na wszelki wypadek
+        document.getElementById('loading-indicator').style.display = 'none';
+        
         // Usunięcie wszystkich markerów graczy
         playerMarkers.forEach(marker => {
             scene.remove(marker);
@@ -657,75 +725,133 @@ document.addEventListener('DOMContentLoaded', () => {
         // Dodanie instrukcji dla AI
         state += "\n\nPodaj swój ruch w formacie RUCH:[wiersz],[kolumna], np. RUCH:1,2";
         state += "\nPamiętaj, że mówisz jako kółko (KÓŁKO) i obrażasz swojego przeciwnika (KRZYŻYK). Twój komentarz ma być zabawny, wulgarny i obraźliwy wobec gracza KRZYŻYK.";
+        state += "\nPAMIĘTAJ: Nawiąż w swoim komentarzu do polskich polityków i aktualnych wydarzeń politycznych w Polsce! Twórz porównania z politykami i partiami.";
         
         return state;
     }
 
-    // Pobranie komentarza od AI
+    // Funkcja pobierająca komentarz od AI
     function getAICommentary(prompt) {
+        if (aiUnavailable) {
+            console.warn("AI jest niedostępne lub wyłączone.");
+            // Ukryj spinner ładowania
+            document.getElementById('loading-indicator').style.display = 'none';
+            // Wykonaj ruch komputera lokalnie
+            simpleComputerMove();
+            return;
+        }
+        
+        // Ignoruj jeśli AI jest wyłączone w interfejsie
+        if (!aiCommentaryEnabled) {
+            console.log("Komentarze AI są wyłączone w interfejsie.");
+            // Ukryj spinner ładowania
+            document.getElementById('loading-indicator').style.display = 'none';
+            // Wykonaj ruch komputera lokalnie
+            simpleComputerMove();
+            return;
+        }
+    
+        console.log("Wysyłanie promptu do AI: ", prompt);
+        
+        // Sprawdź czy prompt ma sens
+        if (!prompt || typeof prompt !== 'string' || prompt.trim() === '') {
+            console.error("Nieprawidłowy prompt:", prompt);
+            // Ukryj spinner ładowania
+            document.getElementById('loading-indicator').style.display = 'none';
+            // Wykonaj ruch komputera lokalnie
+            simpleComputerMove();
+            return;
+        }
+        
+        // Wywołaj API serwera
         fetch('/get-ai-commentary', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ prompt }),
+            body: JSON.stringify({ prompt: prompt }),
         })
         .then(response => {
-            // Sprawdź, czy odpowiedź jest poprawna
             if (!response.ok) {
-                throw new Error(`Błąd serwera: ${response.status} ${response.statusText}`);
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
             return response.json();
         })
         .then(data => {
-            if (data.commentary && !data.commentary.startsWith("Błąd:")) {
-                document.getElementById('ai-message').textContent = data.commentary;
-                aiUnavailable = false;
+            // Ukryj spinner ładowania
+            document.getElementById('loading-indicator').style.display = 'none';
+            
+            console.log("Otrzymano odpowiedź od AI:", data);
+            
+            // Aktualizuj UI z komentarzem
+            document.getElementById('ai-message').textContent = data.commentary || "Nie mam komentarza...";
+            
+            // Wykonaj ruch AI jeśli otrzymany i aktualny gracz to kółko
+            if (data.ai_move && currentPlayer === PLAYERS.KÓŁKO && gameActive) {
+                console.log("Wykonuję ruch AI:", data.ai_move);
+                const { row, col } = data.ai_move;
                 
-                // Sprawdź, czy AI podało ruch
-                if (data.ai_move && currentPlayer === PLAYERS.KÓŁKO && gameActive) {
-                    console.log("AI podało ruch:", data.ai_move);
-                    
-                    // Dodaj małe opóźnienie, aby użytkownik mógł przeczytać komentarz
-                    setTimeout(() => {
-                        // Sprawdź, czy ruch jest prawidłowy
-                        const { row, col } = data.ai_move;
-                        if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE && board[row][col] === PLAYERS.NONE) {
-                            makeMove(row, col);
-                        } else {
-                            console.error("AI podało nieprawidłowy ruch:", data.ai_move);
-                            // Jeśli ruch jest nieprawidłowy, użyj prostego algorytmu
-                            simpleComputerMove();
-                        }
-                    }, 1500);
+                if (isValidMove(row, col)) {
+                    makeMove(row, col);
+                } else {
+                    console.warn("AI próbowało wykonać nieprawidłowy ruch:", data.ai_move);
+                    // Fallback do prostego algorytmu
+                    simpleComputerMove();
                 }
             } else {
-                // Obsługa błędu z serwera lub AI
-                console.error('Błąd AI:', data.error || data.commentary);
-                document.getElementById('ai-message').textContent = "Szef poszedł spać, ale ja mogę z tobą zagrać!";
-                aiUnavailable = true;
-                
-                // Jeśli jest kolej komputera, wykonaj ruch
+                // Jeśli AI nie podało ruchu, a jest tura komputera, użyj lokalnego algorytmu
                 if (currentPlayer === PLAYERS.KÓŁKO && gameActive) {
+                    console.log("AI nie podało ruchu. Używam lokalnego algorytmu.");
                     simpleComputerMove();
                 }
             }
+            
+            // Zakończenie ruchu komputera
+            computerMoveInProgress = false;
         })
         .catch(error => {
-            console.error('Błąd podczas komunikacji z serwerem:', error);
-            document.getElementById('ai-message').textContent = "Szef poszedł spać, ale ja mogę z tobą zagrać!";
-            aiUnavailable = true;
+            console.error('Błąd podczas pobierania komentarza AI:', error);
             
-            // Jeśli jest kolej komputera, wykonaj ruch
+            // Ukryj spinner ładowania
+            document.getElementById('loading-indicator').style.display = 'none';
+            
+            // Ustawienie komunikatu o błędzie
+            document.getElementById('ai-message').textContent = "Błąd komunikacji z AI. Gram samodzielnie!";
+            
+            // Wykonaj ruch komputera lokalnie w przypadku błędu
             if (currentPlayer === PLAYERS.KÓŁKO && gameActive) {
                 simpleComputerMove();
             }
+            
+            // Oznacz AI jako niedostępne po kilku nieudanych próbach
+            aiErrorCount++;
+            if (aiErrorCount >= 3) {
+                console.warn("Zbyt wiele błędów AI. Przełączanie na lokalne obliczenia.");
+                aiUnavailable = true;
+            }
+            
+            // Zakończenie ruchu komputera
+            computerMoveInProgress = false;
         });
     }
     
+    // Sprawdź czy ruch jest prawidłowy
+    function isValidMove(row, col) {
+        return row >= 0 && row < BOARD_SIZE && 
+               col >= 0 && col < BOARD_SIZE && 
+               board[row][col] === PLAYERS.NONE;
+    }
+
     // Prosty algorytm gry dla komputera
     function simpleComputerMove() {
-        if (!gameActive || currentPlayer !== PLAYERS.KÓŁKO) return;
+        if (!gameActive || currentPlayer !== PLAYERS.KÓŁKO) {
+            // Ukryj spinner ładowania jeśli jest widoczny
+            document.getElementById('loading-indicator').style.display = 'none';
+            
+            // Zakończenie ruchu komputera
+            computerMoveInProgress = false;
+            return;
+        }
         
         computerMoveInProgress = true;
         
@@ -743,14 +869,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const blockingMove = findWinningMove(PLAYERS.KRZYŻYK);
                 if (blockingMove) {
                     console.log("Blokuję wygrywający ruch przeciwnika!", blockingMove);
-                    // Dodaj informację o zablokowaniu do komentarza AI z nawiązaniem do polskich polityków
-                    const blockingMessages = [
-                        "Ha! Próbujesz mnie wykiwać? Blokuję twój wygrywający ruch! Jesteś tak przewidywalny jak przemówienia Kaczyńskiego!",
-                        "Blokuję cię szybciej niż Tusk blokuje reformy! Niezły próba, frajerze!",
-                        "Myślisz, że nie widzę tego ruchu? Nawet Morawiecki by zauważył ten tani trik!",
-                        "Twój ruch był subtelny jak ochrona Jarosława! Blokuję cię, kretynie!"
-                    ];
-                    document.getElementById('ai-message').textContent = blockingMessages[Math.floor(Math.random() * blockingMessages.length)];
+                    // Dodaj informację o zablokowaniu do komentarza AI
+                    document.getElementById('ai-message').textContent = "Blokuję twój wygrywający ruch!";
                     makeMove(blockingMove.row, blockingMove.col);
                     return;
                 }
@@ -759,21 +879,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const threatMove = findThreatsToBlock(PLAYERS.KRZYŻYK, 3);
                 if (threatMove) {
                     console.log("Blokuję zagrożenie 3+ znaków w rzędzie!", threatMove);
-                    // Dodaj informację o zablokowaniu z odniesieniami do polskich polityków
-                    const politicalMessages = [
-                        "Twoja strategia jest tak dziurawa jak program wyborczy PiS-u! Blokuję!",
-                        "Próbujesz mnie ograć? Masz tyle szans co Hołownia na zostanie premierem!",
-                        "Widzę twoje zamiary jak Bodnar widzi nieprawidłowości w prokuraturze! Blokuję!",
-                        "Blokuję cię tak skutecznie jak Mentzen blokuje postęp w tym kraju!"
-                    ];
+                    // Dodaj informację o zablokowaniu do komentarza AI
+                    let blockMessage = "Blokuję twój ruch!";
                     
-                    let blockMessage;
                     if (threatMove.criticalType === "sequence") {
-                        blockMessage = `O kurwa! Prawie mnie miałeś z ${threatMove.count} krzyżykami w rzędzie. Taki cwany jak Czarnek w ministerstwie - ale ja nie dam się tak łatwo!`;
+                        blockMessage = `Blokuję twoje ${threatMove.count} znaki w rzędzie!`;
                     } else if (threatMove.criticalType === "gap_pattern") {
-                        blockMessage = `Myślisz, że nie widzę tego twojego podstępnego wzorca ${threatMove.pattern}? Masz mnie za takiego głupka jak Sasin, który nie umie policzyć do 70 milionów?`;
-                    } else {
-                        blockMessage = politicalMessages[Math.floor(Math.random() * politicalMessages.length)];
+                        blockMessage = `Blokuję twój wzorzec ${threatMove.pattern}!`;
                     }
                     
                     document.getElementById('ai-message').textContent = blockMessage;
@@ -846,7 +958,8 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error("Błąd podczas wykonywania ruchu komputera:", error);
             } finally {
-                // Zawsze resetuj flagę, niezależnie od wyniku
+                // Zawsze ukryj spinner ładowania i resetuj flagę, niezależnie od wyniku
+                document.getElementById('loading-indicator').style.display = 'none';
                 computerMoveInProgress = false;
             }
         }, 1000);
@@ -1204,5 +1317,66 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Renderowanie sceny
         renderer.render(scene, camera);
+    }
+
+    // Funkcja zwijania/rozwijania komentarza AI
+    function toggleAICommentary() {
+        const aiCommentary = document.getElementById('ai-commentary');
+        if (aiCommentary) {
+            aiCommentary.classList.toggle('collapsed');
+            
+            // Zapisz stan w localStorage, aby pamiętać preferencje użytkownika
+            const isCollapsed = aiCommentary.classList.contains('collapsed');
+            localStorage.setItem('aiCommentaryCollapsed', isCollapsed);
+        }
+    }
+
+    // Funkcja inicjująca oczekiwanie na ruch komputera
+    function waitForComputerMove() {
+        // Tablica wulgarnych i zabawnych komunikatów podczas oczekiwania
+        const waitingMessages = [
+            "Kurwa, muszę się zastanowić...",
+            "Zaraz cię zajebię, tylko pomyślę jak!",
+            "Jebany ruch, czekaj moment...",
+            "Co za chujowy układ planszy, moment...",
+            "Myślę jak cię rozjebać strategicznie...",
+            "Hmm, gdzie by cię tu wyruchać...",
+            "Zajebiście trudny ruch, czekaj...",
+            "Chuj ci w dupę, dajesz mi mało opcji...",
+            "Mam w dupie twoją strategię, zaraz zagram...",
+            "Kurwa mać, skomplikowane... cierpliwości!"
+        ];
+        
+        // Wybierz losowy komunikat
+        const randomMessage = waitingMessages[Math.floor(Math.random() * waitingMessages.length)];
+        
+        // Wyświetl losowy komunikat w loadingu
+        const loadingText = document.querySelector('#loading-indicator div:last-child');
+        if (loadingText) {
+            loadingText.textContent = randomMessage;
+        }
+        
+        // Wyświetl informację o oczekiwaniu na ruch komputera w AI message
+        document.getElementById('ai-message').textContent = randomMessage;
+        
+        // Pokaż spinner ładowania
+        document.getElementById('loading-indicator').style.display = 'block';
+        
+        // Ustaw flagę, że komputer wykonuje ruch (blokada interakcji)
+        computerMoveInProgress = true;
+        
+        // Nie chowamy już wskaźnika ładowania tutaj - zostanie on ukryty po faktycznym wykonaniu ruchu
+        // simpleComputerMove zostanie wykonany tylko jeśli AI nie zadziała
+    }
+
+    // Przywrócenie stanu zwinięcia komentarza AI
+    function restoreAICommentaryState() {
+        const aiCommentary = document.getElementById('ai-commentary');
+        if (aiCommentary) {
+            const isCollapsed = localStorage.getItem('aiCommentaryCollapsed') === 'true';
+            if (isCollapsed) {
+                aiCommentary.classList.add('collapsed');
+            }
+        }
     }
 });

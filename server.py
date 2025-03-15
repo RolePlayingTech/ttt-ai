@@ -35,7 +35,7 @@ def get_ai_commentary():
         commentary = get_ai_response(prompt)
         
         # Sprawdzenie, czy odpowiedź zawiera informację o błędzie
-        if commentary.startswith("Błąd:"):
+        if "Błąd:" in commentary and "RUCH:" not in commentary:
             error_details = commentary
             print(f"Błąd AI: {error_details}", file=sys.stderr)
             return jsonify({'error': error_details}), 500
@@ -60,9 +60,20 @@ def get_ai_commentary():
                     print(f"Sparsowany ruch AI: wiersz={row}, kolumna={col}")
                 except Exception as e:
                     print(f"Błąd podczas parsowania ruchu AI: {e}", file=sys.stderr)
+                    # Awaryjny ruch w przypadku błędu parsowania
+                    ai_move = {'row': 5, 'col': 5}
+                    print(f"Ustawiono awaryjny ruch AI: wiersz=5, kolumna=5")
             
             # Usuń marker ruchu z komentarza
             commentary = commentary[:commentary.find(move_marker)].strip()
+        else:
+            # Jeśli nie znaleziono markera RUCH:, ustaw domyślny ruch
+            print("Nie znaleziono markera RUCH: w odpowiedzi AI, ustawiam domyślny ruch")
+            ai_move = {'row': 5, 'col': 5}
+        
+        # Jeśli commentary zawiera "Błąd", ale mamy ruch, usuń informację o błędzie z komentarza
+        if "Błąd:" in commentary and ai_move:
+            commentary = "Coś się zjebało z API, ale i tak zagram!"
         
         return jsonify({
             'commentary': commentary,
